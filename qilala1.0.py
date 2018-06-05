@@ -312,7 +312,7 @@ class CQHandler(object):
 						lib.write(str(p))
 						lib.write('\n')	
 				#CQSDK.SendGroupMsg(fromGroup, 'Date changed')	
-			date=date2
+			localtim=localt
 		#else:
 		#	CQSDK.SendGroupMsg(fromGroup, ' 34 ')	
 		
