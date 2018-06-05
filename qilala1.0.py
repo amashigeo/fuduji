@@ -257,7 +257,7 @@ class CQHandler(object):
 			
 			
 		if (msg[0:8] =="!checkin"):
-			filename="d:\\drawlib\\"+str(fromQQ)+'.txt'
+			filename="d:/drawlib/"+str(fromQQ)+'.txt'
 			lib=open(filename,"r")
 			bag=[" "]*51
 			lines=lib.readlines(100)
