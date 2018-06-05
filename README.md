@@ -1,2 +1,2 @@
 # fuduji
-a coolq bot script
+a coolq bot python script
