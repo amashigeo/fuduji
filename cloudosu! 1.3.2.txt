@@ -1,0 +1,147 @@
+version 1.3.2
+improved player's initial abilities.
+adjusted map's properties' ranges so that they would meet the stars.
+
+version 1.3.1
+changed growing rate and playing one kind of map will also influence other abilities slightly.
+fail play will also cause half growing.
+fixed some mistakes.
+Now you can play this 'game'! (predetermined)
+
+version 1.3
+reduced speed endurance cost
+now resttime endurance regeneration is related to rest time length
+added PLAYER'S GROWING column
+
+version 1.2.7b
+adjusted s and a chances and speed endurance cost
+
+version 1.2.7
+balanced some(many) parameters in endurance calculation
+
+version 1.2.6
+endurance change:
+slider will regenerate endurance
+decreased single circle endurance cost
+removed combo-break regeneration
+
+version 1.2.5
+changed objects(o) range for different map types
+changed appearance and endurance formulas to keep the result proper in extreme conditions
+corrected the "300" determine's condition
+
+version 1.2
+removed effective grids(eg), and randomized s,a probabilities. these two numbers are randomly formed, but m is still calculated, in another expression.
+changed max scf from 5 to 4
+
+version 1.1.1
+fixed some faults.
+
+version 1.1 
+changed algorithm on stars, it now works on luck, the *(1+(level-stars)*1.5/level) item is now removed
+some changes about endurance
+added influence items on ar and hp
+
+
+
+
+FROM REAL BEATMAPS(provisional range):
+bgm 100-280
+hit length 30-500
+ar 3-10
+cs 2-7
+od 2-10
+hp 0-10
+maxcombo(mcb)
+
+
+RANDOM FORM: 
+slider combo factor: (scf) from 2 to 4
+rest factor: 0-0.2
+ map type   slider length      circle distance        slider speed    s chance    a chance   objects(o) (realized in Gaussian distribution)
+ s(speed)    0.25-2   		  2-7    		 2-6  	 	4-8         1-6	    0.625mcb-mcb
+ a(aim)       2-3    		  4-10   		 2-6   		0-3	    6-9     0.625mcb-mcb
+ m(move)      2-4    		  2-9    		 4-10		0-5	    1-5    0.5mcb-0.75mcb
+in cd and ss (here we call the lower border in the table as lb and upper border in the table as ub, different from the ones below): 
+lower border=max(log2(lb),lb*stars/6)
+upper border=lowerborder+(ub-lb)*stars/6
+
+CALCULATED:
+
+sliders(m)=(mcb-o)/(scf-1) (this may make 'slider maps' don't look like slider maps, but at least the result is not negative)
+aim circles(a)=(o-m)*achance/(achance+schance)
+speed circles(s)=(o-m)*schance/(achance+schance)
+
+speed probability: sprob=s/(s+a+m)
+slider probability: mprob=m/(s+a+m)
+aim probability: aprob=a/(s+a+m)
+
+rest=length*restfactor ,seems to be often from 0 to 100
+
+
+PLAYER'S PROPERTIES:(provisional range, can be effected by other factors to conclude 0-10)
+controllable speed: (pls) 100-280
+aim:(pla) 0-10
+move control:(plm) 0-10
+endurance: 5-100
+accuracy: 2-10
+level: 1-10 (corresponding the stars)
+playcount should better be recorded.
+
+PLAYER'S GROWING:
+initial points: endurance=10, accuracy=4, level=1, pls=150, pla=2, plm=2.
+player can select an initial talent, which can raise pls to 120, or pla/plm to 1.
+for each pc:
+endurance += 0.1*((stars-level)*3+1)*accuracyofthispc^3*combo/maxcb, for example, lv=1, stars=1.2, acc=100%, full combo, added is 0.16. if every pc adds 0.01 endu, 1000pc will add 100 and you will become a mature player.
+accuracy += 0.01*((od-accuracy)*2+1)*accuracyofthispc^4, e.g. od=8, accuracy=8, acc=100%, added is 0.01.
+level += 0.01*((stars-level)+0.5)*accuracyofthispc^3.
+if this map is s type, pls += 0.01*((bpm-pls)*3/max(bpm,pls)+1)*accuracyofthispc^3.
+if this map is a type, pla += 0.01*((circledistance-pla)*3/max(circledistance,pla)+1)*accuracyofthispc^3.
+if this map is m type, plm += 0.01*((sliderspeed-plm)*3/max(sliderspeed,plm)+1)*accuracyofthispc^3.
+and the growing rate is like this table:
+map        s        a         m
+plsgrow    1 	   0.3       0.5
+plagrow	  0.3	    1	     0.5
+plmgrow   0.3	   0.5	      1
+A failed pc will provide half of the completed growing value.
+
+
+RUNNING FORMULA: (the results may not all be proper, the parameters can be adjusted through experiments)
+we do the calculation by every object. there're 3 types, s, a and m. They appear by the probability calculated above. several rests will be inserted and one lasts 5 to 10 seconds, the number of rest time is integer.
+
+After a rest:
+endurance += resttime*0.04*endurance max value, e.g. 5s rest will regene 20%, 10s rest will regene 40%
+and in the following n(from 1 to 10) objects the appearance will time 0.96^(11-n), the first item will be influenced by about 0.66
+
+also, there will be a random factor luck of every hit. base luck is from 0.67 to 1.5.
+the stars of map and player's level affect luck. the affected luck=luck+(level-stars)/level , for example, if your lv=5, and map stars=8, luck will become about 0.07-0.9
+ar also works on luck, here it may differ from reality conditions. we suppose that when ar increases, it is less steady. but this don't affect a lot.
+luck= luck+-ar/100, if a map is ar10, the luck will become 0.57 to 1.6. it is more stochastic.
+
+
+for s type:
+endurance += 2*((pls-bgm)*5/pls-1)*0.02*stars, when pls>bgm, it doesn't increase. for example, pls=180, bgm=180, stars=5, every hit player will lose 0.2 endurance
+appearance =300*(1+(pls-bgm)/max(pls,bgm))*(1+(accuracy-od)/10)*luck*(1+((aim*0.5+2)-cs)/max((aim*0.5+2),cs))*(endurance/maxendurance)^0.3   (here when the endurance comes to 0.5max, the result is influenced by about 0.8)
+ if appearance is over 233, the result is"300", if 166 to 233, result is "100", 1000 to 166 to "50", and under 100 is miss. each item may need an exponential factor to balance.
+and statistics of appearance distribution should be calculated to reset the result interval!!!<<<----
+
+for m type:
+endurance += 0.4*((pls-bgm)*5/pls+0.5)*0.08*stars, when pls>bgm, it may also regenerate. for example, pls=180, bgm=180, stars=5, every hit player will regenerate 0.08 endurance
+appearance =300*(1+(accuracy-od)/10)^0.6*(1+(pls-bgm)/max(pls,bgm))*luck*(1+((aim*0.5+2)-cs)/max((aim*0.5+2),cs))*(endurance/maxendurance)^0.2*(1+(plm-sliderspeed)/plm)^2   (here the sliderspeed item may not need to be changed)
+similarly , when result is "100" in above interval the combo decreases to 1 to scf-1, and when result is "50" combos break.
+
+for a type:
+endurance += 0.4*((pls-bgm)*5/pls-0.5)*0.1*stars, when pls>bgm, it may also regenerate. for example, pls=180, bgm=180, stars=5, every hit player will lose 0.1 endurance
+appearance =300*(1+(accuracy-od)/10)^0.8*(1+(pls-bgm)/max(pls,bgm))*luck*(1+((aim*0.5+2)-cs)/max((aim*0.5+2),cs))^1.2*(endurance/maxendurance)^0.2*(1+(pla-circledistance)/max(pla,circledistance))^1.5
+
+in the above three appearance conditions, when player's abilities overflow, the corresponding item will have an exponent of 0.5 (or not? that depends on the statistics) 
+
+
+Hp system:
+in the beginning hpbar=100 (to distinguish from map hp)
+for a circle (s type or a type) 300 +5 hpbar    100 +0 hpbar    50 -2 hpbar    miss -8hpbar
+for a slider (s type) 300 +scf hpbar    100 -scf hpbar   50  -scf-2 hpbar    miss -scf-5 hpbar
+the above is the basic rate on hp5. considering the hp factor,
+the hpbar increases should time (log10 4)^(hp-5) and decreases should be divided by (log10 4)^(hp-5). as a result in hp 10 the hpbar will decrease in twice speed and increase in half speed.
+if hpbar comes to 0, the player fails
+
